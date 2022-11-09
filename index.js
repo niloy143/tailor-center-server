@@ -86,6 +86,22 @@ async function run() {
             res.send(deletion);
         })
 
+        app.get('/review/:id', async (req, res) => {
+            const query = { _id: ObjectId(req.params.id) };
+            const review = await reviewsColollection.findOne(query);
+            res.send(review);
+        })
+
+        app.put('/review/update', verifyJWT, async (req, res) => {
+            if (req.decoded.uid !== req.query.userId) {
+                res.status(403).send({ access: 'not-allowed' })
+            }
+            const query = { _id: ObjectId(req.query.id) };
+            const replacement = req.body;
+            const updated = await reviewsColollection.replaceOne(query, replacement);
+            res.send(updated);
+        })
+
     }
     catch (err) {
         console.log(err.code)
