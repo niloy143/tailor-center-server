@@ -65,7 +65,7 @@ async function run() {
 
         app.put('/service/modify', verifyJWT, async (req, res) => {
             if (req.decoded.uid !== req.query?.userId) {
-                res.status(403).send({ access: 'not-allowed' })
+                return res.status(403).send({ access: 'not-allowed' })
             }
             const filter = { _id: ObjectId(req.query.serviceId) };
             const updateRating = {
@@ -79,7 +79,7 @@ async function run() {
 
         app.delete('/review/delete', verifyJWT, async (req, res) => {
             if (req.decoded.uid !== req.query?.userId) {
-                res.status(403).send({ access: 'not-allowed' })
+                return res.status(403).send({ access: 'not-allowed' })
             }
             const query = { _id: ObjectId(req.query.id) };
             const deletion = await reviewsColollection.deleteOne(query);
@@ -94,12 +94,22 @@ async function run() {
 
         app.put('/review/update', verifyJWT, async (req, res) => {
             if (req.decoded.uid !== req.query.userId) {
-                res.status(403).send({ access: 'not-allowed' })
+                return res.status(403).send({ access: 'not-allowed' })
             }
             const query = { _id: ObjectId(req.query.id) };
             const replacement = req.body;
             const updated = await reviewsColollection.replaceOne(query, replacement);
             res.send(updated);
+        })
+
+        app.get('/my-reviews', verifyJWT, async (req, res) => {
+            if (req.decoded.uid !== req.query.user) {
+                return res.status(403).send({ access: 'not-allowed' })
+            }
+            const query = { reviewerId: req.query.user };
+            const cursor = reviewsColollection.find(query);
+            const myReviews = await cursor.toArray();
+            res.send(myReviews);
         })
 
     }
