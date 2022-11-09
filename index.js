@@ -13,9 +13,25 @@ app.use(express.json());
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.sq5icdb.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
+const verifyJWT = (req, res, next) => {
+    const authToken = req.headers.authtoken;
+    if (!authToken) {
+        return res.status(401).send({ authorization: 'declined' });
+    }
+    const token = authToken.split(' ')[1];
+    jwt.verify(token, jwtAccessCode, (err, decoded) => {
+        if (err) {
+            return res.status(401).send({ authorization: 'declined' });
+        }
+        req.decoded = decoded;
+        next();
+    })
+}
+
 async function run() {
     try {
         const servicesCollection = client.db('tailorCenter').collection('services');
+        const reviewsColollection = client.db('tailorCenter').collection('reviews');
 
         app.get('/services', async (req, res) => {
             const limitation = parseInt(req.query.count) || 0;
@@ -29,6 +45,17 @@ async function run() {
             const service = await servicesCollection.findOne(query);
             res.send(service)
         })
+
+        app.post('/add-review', verifyJWT, async (req, res) => {
+            const decoded = req.decoded;
+            const userId = req.query?.userId;
+            if (userId !== decoded.uid) {
+                return res.status(403).send({ access: 'not-allowed' })
+            }
+            const review = await reviewsColollection.insertOne(req.body)
+            res.send({ status: review.acknowledged, data: req.body });
+        })
+
     }
     catch (err) {
         console.log(err.code)
