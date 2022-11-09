@@ -56,6 +56,13 @@ async function run() {
             res.send({ status: review.acknowledged, data: req.body });
         })
 
+        app.get('/reviews/:id', async (req, res) => {
+            const query = { serviceId: req.params?.id };
+            const cursor = reviewsColollection.find(query);
+            const reviews = await cursor.toArray();
+            res.send(reviews);
+        })
+
     }
     catch (err) {
         console.log(err.code)
