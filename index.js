@@ -77,6 +77,15 @@ async function run() {
             res.send(updated)
         })
 
+        app.delete('/review/delete', verifyJWT, async (req, res) => {
+            if (req.decoded.uid !== req.query?.userId) {
+                res.status(403).send({ access: 'not-allowed' })
+            }
+            const query = { _id: ObjectId(req.query.id) };
+            const deletion = await reviewsColollection.deleteOne(query);
+            res.send(deletion);
+        })
+
     }
     catch (err) {
         console.log(err.code)
