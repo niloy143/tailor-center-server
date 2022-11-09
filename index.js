@@ -63,6 +63,20 @@ async function run() {
             res.send(reviews);
         })
 
+        app.put('/service/modify', verifyJWT, async (req, res) => {
+            if (req.decoded.uid !== req.query?.userId) {
+                res.status(403).send({ access: 'not-allowed' })
+            }
+            const filter = { _id: ObjectId(req.query.serviceId) };
+            const updateRating = {
+                $set: {
+                    rating: req.body.averageRating
+                }
+            }
+            const updated = await servicesCollection.updateOne(filter, updateRating);
+            res.send(updated)
+        })
+
     }
     catch (err) {
         console.log(err.code)
