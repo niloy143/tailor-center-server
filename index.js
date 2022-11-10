@@ -35,9 +35,28 @@ async function run() {
 
         app.get('/services', async (req, res) => {
             const limitation = parseInt(req.query.count) || 0;
-            const cursor = servicesCollection.find({});
+            const sort = { date: -1 };
+            const cursor = servicesCollection.find({}).sort(sort);
             const services = await cursor.limit(limitation).toArray();
             res.send(services);
+        })
+
+        app.post('/service/add', verifyJWT, async (req, res) => {
+            if (req.decoded.uid !== req.query.userId) {
+                return res.status(403).send({ access: 'not-allowed' })
+            }
+            const result = await servicesCollection.insertOne(req.body);
+            res.send(result);
+        })
+
+        app.get('/user-added-services', verifyJWT, async (req, res) => {
+            if (req.decoded.uid !== req.query.userId) {
+                return res.status(403).send({ access: 'not-allowed' })
+            }
+            const query = { userId: req.query.userId };
+            const cursor = servicesCollection.find(query);
+            const services = await cursor.toArray();
+            res.send(services)
         })
 
         app.get('/service/:id', async (req, res) => {
