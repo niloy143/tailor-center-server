@@ -38,7 +38,8 @@ async function run() {
             const sort = { date: -1 };
             const cursor = servicesCollection.find({}).sort(sort);
             const services = await cursor.limit(limitation).toArray();
-            res.send(services);
+            const count = await servicesCollection.estimatedDocumentCount();
+            res.send({ services, count });
         })
 
         app.post('/service/add', verifyJWT, async (req, res) => {
