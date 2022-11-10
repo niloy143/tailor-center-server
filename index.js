@@ -31,7 +31,7 @@ const verifyJWT = (req, res, next) => {
 async function run() {
     try {
         const servicesCollection = client.db('tailorCenter').collection('services');
-        const reviewsColollection = client.db('tailorCenter').collection('reviews');
+        const reviewsCollection = client.db('tailorCenter').collection('reviews');
 
         app.get('/services', async (req, res) => {
             const limitation = parseInt(req.query.count) || 0;
@@ -72,13 +72,13 @@ async function run() {
             if (userId !== decoded.uid) {
                 return res.status(403).send({ access: 'not-allowed' })
             }
-            const review = await reviewsColollection.insertOne(req.body)
+            const review = await reviewsCollection.insertOne(req.body)
             res.send({ status: review.acknowledged, data: req.body });
         })
 
         app.get('/reviews/:id', async (req, res) => {
             const query = { serviceId: req.params?.id };
-            const cursor = reviewsColollection.find(query);
+            const cursor = reviewsCollection.find(query);
             const reviews = await cursor.toArray();
             res.send(reviews);
         })
@@ -102,13 +102,13 @@ async function run() {
                 return res.status(403).send({ access: 'not-allowed' })
             }
             const query = { _id: ObjectId(req.query.id) };
-            const deletion = await reviewsColollection.deleteOne(query);
+            const deletion = await reviewsCollection.deleteOne(query);
             res.send(deletion);
         })
 
         app.get('/review/:id', async (req, res) => {
             const query = { _id: ObjectId(req.params.id) };
-            const review = await reviewsColollection.findOne(query);
+            const review = await reviewsCollection.findOne(query);
             res.send(review);
         })
 
@@ -118,7 +118,7 @@ async function run() {
             }
             const query = { _id: ObjectId(req.query.id) };
             const replacement = req.body;
-            const updated = await reviewsColollection.replaceOne(query, replacement);
+            const updated = await reviewsCollection.replaceOne(query, replacement);
             res.send(updated);
         })
 
@@ -127,7 +127,7 @@ async function run() {
                 return res.status(403).send({ access: 'not-allowed' })
             }
             const query = { reviewerId: req.query.user };
-            const cursor = reviewsColollection.find(query);
+            const cursor = reviewsCollection.find(query);
             const myReviews = await cursor.toArray();
             res.send(myReviews);
         })
